@@ -95,7 +95,7 @@ export default {
                     (day <= activeSelectedDayStart && day >= activeSelectedDayEnd)
                 )
             } else {
-                return activeSelectedDayStart === day
+                return +activeSelectedDayStart === +day
             }
         },
 		getMonthName(date) {
