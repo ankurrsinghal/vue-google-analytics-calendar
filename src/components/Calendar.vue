@@ -200,7 +200,14 @@ export default {
 
             } else if (this.isValidDate(activeSelectedDayStart)) {
                 // handle second click
-                this.activeSelectedDayEnd = day
+                
+                if (day < activeSelectedDayStart) {
+                    this.activeSelectedDayEnd = activeSelectedDayStart
+                    this.activeSelectedDayStart = day
+                } else {
+                    this.activeSelectedDayEnd = day
+                }
+
                 this.currentMouseOveredDay = this.getLeastDate()
 
             } else {
