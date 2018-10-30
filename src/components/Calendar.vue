@@ -1,6 +1,9 @@
 <template>
     <div>
         <div class="calendar-boxes-wrapper">
+            <div class="calendar-action previous">
+                <button @click="decrementMonth">Previous</button>
+            </div>
             <CalendarBox
                 :date="getLastMonth(date)"
                 :activeSelectedDayStart= activeSelectedDayStart
@@ -31,6 +34,9 @@
                 :isRangeSelected = isRangeSelected
                 @onDayClick="onDayClick"
                 @onDayMouseOver="onDayMouseOver" />
+            <div class="calendar-action next">
+                <button @click="incrementMonth">Next</button>
+            </div>
         </div>
         <div class="values">
             <div>
@@ -219,7 +225,7 @@ export default {
             const fullYear = this.date.getFullYear()
             const month = this.date.getMonth()
 
-            if (fullYear === 0) {
+            if (month === 0) {
                 return new Date(fullYear - 1, 0, 1)
             }
             return new Date(fullYear, month - 1, 1)
@@ -228,7 +234,7 @@ export default {
             const fullYear = this.date.getFullYear()
             const month = this.date.getMonth()
 
-            if (fullYear === 11) {
+            if (month === 11) {
                 return new Date(fullYear + 1, 0, 1)
             }
             return new Date(fullYear, month + 1, 1)
@@ -239,6 +245,12 @@ export default {
         },
         getLeastDate() {
             return new Date(0)
+        },
+        decrementMonth() {
+            this.date = this.getLastMonth()
+        },
+        incrementMonth() {
+            this.date = this.getNextMonth()
         }
 	}
 }
@@ -256,5 +268,9 @@ export default {
             margin-right: 0;            
         }
     }
+}
+
+.calendar-action {
+    
 }
 </style>
