@@ -2,9 +2,12 @@
     <div>
         <div class="calendar-boxes-wrapper">
             <div class="calendar-action previous">
-                <button @click="decrementMonth">Previous</button>
+                <button @click="decrementMonth">
+                    <img src="../assets/left-arrow.svg">
+                </button>
             </div>
             <CalendarBox
+                :today="today"
                 :date="getLastMonth(date)"
                 :activeSelectedDayStart= activeSelectedDayStart
                 :activeSelectedDayEnd = activeSelectedDayEnd
@@ -15,6 +18,7 @@
                 @onDayClick = onDayClick
                 @onDayMouseOver = onDayMouseOver />
             <CalendarBox
+                :today="today"
                 :date="date"
                 :activeSelectedDayStart = activeSelectedDayStart
                 :activeSelectedDayEnd = activeSelectedDayEnd
@@ -25,6 +29,7 @@
                 @onDayClick="onDayClick"
                 @onDayMouseOver="onDayMouseOver" />
             <CalendarBox
+                :today="today"
                 :date="getNextMonth(date)"
                 :activeSelectedDayStart = activeSelectedDayStart
                 :activeSelectedDayEnd = activeSelectedDayEnd
@@ -35,10 +40,21 @@
                 @onDayClick="onDayClick"
                 @onDayMouseOver="onDayMouseOver" />
             <div class="calendar-action next">
-                <button @click="incrementMonth">Next</button>
+                <button @click="incrementMonth">
+                    <img src="../assets/right-arrow.svg">
+                </button>
             </div>
             <div class="macros">
-                
+                <div class="label">Date Range:</div>
+                <select
+                    v-model="dateRange">
+                    <option
+                        v-for="range in dateRanges"
+                        :key="range.key"
+                        :value="range.key">
+                        {{ range.label }}
+                    </option>
+                </select>
             </div>
         </div>
         <div class="values">
@@ -51,7 +67,7 @@
                 </p>
             </div>
             <p>
-                vs
+                Compare to:
                 <select v-model="comparisonWith">
                     <option value="PREVIOUS_PERIOD">Previous Period</option>
                     <option value="PREVIOUS_YEAR">Previous Year</option>
@@ -73,29 +89,29 @@
 import { capitalize } from 'lodash'
 import CalendarBox from './CalendarBox'
 
+import {
+    getRelativeLastYearDate,
+    decrementMonth,
+    incrementMonth,
+    howManyDaysInThisMonthsDate,
+    endDateOfThisMonthsDate,
+    getOnlyDayDate
+} from './utils'
+
 const PREVIOUS_PERIOD = "PREVIOUS_PERIOD"
 const PREVIOUS_YEAR = "PREVIOUS_YEAR"
 
-const getRelativeLastYearDate = date => new Date(date.getFullYear() - 1, date.getMonth(), date.getDate())
-const decrementMonth = date => {
-    const fullYear = date.getFullYear()
-    const month = date.getMonth()
-
-    if (month === 0) {
-        return new Date(fullYear - 1, 11, 1)
-    }
-
-    return new Date(fullYear, month - 1, 1)
+const DATE_RANGE_CUSTOM = {
+    label: 'Custom',
+    key: '0'
 }
-const incrementMonth = date => {
-    const fullYear = date.getFullYear()
-    const month = date.getMonth()
-
-    if (month === 11) {
-        return new Date(fullYear + 1, 0, 1)
-    }
-
-    return new Date(fullYear, month + 1, 1)
+const DATE_RANGE_LAST_WEEK = {
+    label: 'Last Week',
+    key: '1'
+}
+const DATE_RANGE_LAST_MONTH = {
+    label: 'Last Month',
+    key: '2'
 }
 
 export default {
@@ -105,13 +121,54 @@ export default {
             activeSelectedDayStart: this.getLeastDate(),
             currentMouseOveredDay: this.getLeastDate(),
             activeSelectedDayEnd: this.getLeastDate(),
-            comparisonWith: PREVIOUS_YEAR
+            comparisonWith: PREVIOUS_YEAR,
+            dateRange: DATE_RANGE_CUSTOM.key
 		}
     },
     components: {
         CalendarBox
     },
+    watch: {
+        dateRange(newVal) {
+            const today = new Date()
+            switch (newVal) {
+                case DATE_RANGE_LAST_WEEK.key:
+                    const year = today.getFullYear()
+                    const month = today.getMonth()
+                    const date = today.getDate()
+                    const day = today.getDay()
+
+                    const lastWeekEndDate = date - day
+                    const lastWeekStartDate = lastWeekEndDate - 6
+
+                    this.activeSelectedDayStart = new Date(year, month, lastWeekStartDate)
+                    this.activeSelectedDayEnd = new Date(year, month, lastWeekEndDate)
+
+                    break
+
+                case DATE_RANGE_LAST_MONTH.key:
+                    const lastMonthDate = decrementMonth(today)
+
+                    this.activeSelectedDayStart = lastMonthDate
+                    this.activeSelectedDayEnd = endDateOfThisMonthsDate(lastMonthDate)
+                    break
+                    
+                default:
+                    break;
+            }
+        }
+    },
 	computed: {
+        today() {
+            return getOnlyDayDate(new Date())
+        },
+        dateRanges() {
+            return [
+                DATE_RANGE_CUSTOM,
+                DATE_RANGE_LAST_WEEK,
+                DATE_RANGE_LAST_MONTH
+            ]
+        },
         isRangeSelected() {
             const {
                 activeSelectedDayStart,
@@ -268,6 +325,8 @@ export default {
 </script>
 
 <style lang="less">
+@import url('./variables.less');
+
 .calendar-boxes-wrapper {
     display: flex;
     padding: 1em;
@@ -282,6 +341,13 @@ export default {
 }
 
 .calendar-action {
-    
+    button {
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        background: #ffffff;
+        border: 1px solid #333333;
+        padding: 8px;
+    }
 }
 </style>

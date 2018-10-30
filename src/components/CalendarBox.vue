@@ -20,12 +20,7 @@
                 <div
                     v-if="shouldDayBeHere(index)"
                     class="calender-day"
-                    :class="{
-                        'comparitive-range': ifInComparitiveRange(computeDateFromIndex(index)),
-                        'selected': ifDaySelected(computeDateFromIndex(index)),
-                        'in-range': ifInRange(computeDateFromIndex(index)),
-                        'mouseover': currentMouseOveredDay === computeDateFromIndex(index)
-                    }"
+                    :class="computeTheClasses(index)"
                     @click="$emit('onDayClick', (computeDateFromIndex(index)))"
                     @mouseover="$emit('onDayMouseOver', (computeDateFromIndex(index)))">
                     {{ paddedDayFromIndex(index) }}
@@ -38,36 +33,10 @@
 <script>
 import { capitalize } from 'lodash'
 
-const firstDayOfTheMonth = date => {
-    const year = date.getFullYear()
-    const month = date.getMonth()
-    return new Date(year, month, 1).getDay()
-}
-
-const DAYS_MONTH_MAP = {
-    0: 31,
-    2: 31,
-    3: 30,
-    4: 31,
-    5: 30,
-    6: 31,
-    7: 31,
-    8: 30,
-    9: 31,
-    10: 30,
-    11: 31
-}
-
-const howManyDaysInThisMonthsDate = date => {
-    const month = date.getMonth()
-    const year = date.getYear()
-
-    if (month === 1) {
-        return year % 4 === 0 ? 29 : 28
-    } else {
-        return DAYS_MONTH_MAP[month]
-    }
-}
+import {
+    firstDayOfTheMonth,
+    howManyDaysInThisMonthsDate
+} from './utils'
 
 export default {
     props: {
@@ -77,6 +46,7 @@ export default {
         currentMouseOveredDay: Date,
         comparitiveStartDate: Date,
         comparitiveEndDate: Date,
+        today: Date,
         isRangeSelected: Boolean
     },
 	computed: {
@@ -108,10 +78,37 @@ export default {
         },
 	},
 	methods: {
+        computeTheClasses(index) {
+            //properties
+            const {
+                currentMouseOveredDay,
+                today
+            } = this
+
+
+            //methods
+            const {
+                computeDateFromIndex,
+                ifInComparitiveRange,
+                ifDaySelected,
+                ifInRange
+            } = this
+
+
+            const dateFromIndex = this.computeDateFromIndex(index)
+            return ({
+                'comparitive-range': ifInComparitiveRange(dateFromIndex),
+                'selected': ifDaySelected(dateFromIndex),
+                'in-range': ifInRange(dateFromIndex),
+                'mouseover': +currentMouseOveredDay === +dateFromIndex,
+                'today': +today === +dateFromIndex
+            })
+        },
         computeDateFromIndex(index) {
             return this.getDateWithDay(this.paddedDayFromIndex(index))
         },
         paddedDayFromIndex(index) {
+            // console.log(index - this.firstDayOfTheMonth + 1)
             return index - this.firstDayOfTheMonth + 1
         },
         shouldDayBeHere(index) {
@@ -122,7 +119,7 @@ export default {
             return (
                 index >= firstDayOfTheMonth
                 &&
-                index <= numberOfDaysInThisMonth
+                index <= numberOfDaysInThisMonth + (firstDayOfTheMonth - 1)
             )
         },
         ifInComparitiveRange(date) {
@@ -165,7 +162,7 @@ export default {
         },
         ifDaySelected(day) {
             const { activeSelectedDayStart, activeSelectedDayEnd } = this
-
+            
             if (this.isRangeSelected) {
                 return (
                     (day >= activeSelectedDayStart && day <= activeSelectedDayEnd)
@@ -206,13 +203,7 @@ export default {
 </script>
 
 <style lang="less">
-
-@numOfColumns: 7;
-@daySize: 25px;
-@daySpacing: 2px;
-@containerPadding: 8px;
-@totalWidth: @daySize*@numOfColumns + @daySpacing*((@numOfColumns)-1) + @containerPadding*2;
-
+@import url('./variables.less');
 
 .calendar-box {
     width: @totalWidth;
@@ -248,6 +239,15 @@ export default {
     &.selected {
         background: blueviolet;
         color: #fcfcfc;
+        &.today {
+            background: blueviolet;
+            color: #fcfcfc;
+        }
+    }
+
+    &.today {
+        background: rosybrown;
+        color: #fcfcfc;
     }
 
     &.in-range {
@@ -255,6 +255,14 @@ export default {
         background: lighten(blueviolet, 20%);
         &:hover {
             background: blueviolet;
+            &.today {
+                color: #fcfcfc;
+                background: blueviolet;
+            }
+        }
+        &.today {
+            color: #fcfcfc;
+            background: lighten(blueviolet, 20%);
         }
     }
 
