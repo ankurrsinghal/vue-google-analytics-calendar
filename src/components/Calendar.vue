@@ -74,6 +74,26 @@ const PREVIOUS_PERIOD = "PREVIOUS_PERIOD"
 const PREVIOUS_YEAR = "PREVIOUS_YEAR"
 
 const getRelativeLastYearDate = date => new Date(date.getFullYear() - 1, date.getMonth(), date.getDate())
+const decrementMonth = date => {
+    const fullYear = date.getFullYear()
+    const month = date.getMonth()
+
+    if (month === 0) {
+        return new Date(fullYear - 1, 11, 1)
+    }
+
+    return new Date(fullYear, month - 1, 1)
+}
+const incrementMonth = date => {
+    const fullYear = date.getFullYear()
+    const month = date.getMonth()
+
+    if (month === 11) {
+        return new Date(fullYear + 1, 0, 1)
+    }
+
+    return new Date(fullYear, month + 1, 1)
+}
 
 export default {
 	data() {
@@ -222,22 +242,10 @@ export default {
             }
         },
         getLastMonth() {
-            const fullYear = this.date.getFullYear()
-            const month = this.date.getMonth()
-
-            if (month === 0) {
-                return new Date(fullYear - 1, 0, 1)
-            }
-            return new Date(fullYear, month - 1, 1)
+            return decrementMonth(this.date)
         },
         getNextMonth() {
-            const fullYear = this.date.getFullYear()
-            const month = this.date.getMonth()
-
-            if (month === 11) {
-                return new Date(fullYear + 1, 0, 1)
-            }
-            return new Date(fullYear, month + 1, 1)
+            return incrementMonth(this.date)
         },
         isValidDate(date) {
             //dates are reference types so we have to compare the value
@@ -247,10 +255,10 @@ export default {
             return new Date(0)
         },
         decrementMonth() {
-            this.date = this.getLastMonth()
+            this.date = decrementMonth(this.date)
         },
         incrementMonth() {
-            this.date = this.getNextMonth()
+            this.date = incrementMonth(this.date)
         }
 	}
 }
