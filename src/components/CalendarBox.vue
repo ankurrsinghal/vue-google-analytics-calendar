@@ -9,6 +9,7 @@
                 v-for="day in days"
                 :key="day"
                 :class="{
+                    'comparitive-range': ifInComparitiveRange(getDateWithDay(day)),
                     'selected': ifDaySelected(getDateWithDay(day)),
                     'in-range': ifInRange(getDateWithDay(day)),
                     'mouseover': currentMouseOveredDay === getDateWithDay(day)
@@ -30,6 +31,8 @@ export default {
         activeSelectedDayStart: Date,
         activeSelectedDayEnd: Date,
         currentMouseOveredDay: Date,
+        comparitiveStartDate: Date,
+        comparitiveEndDate: Date,
         isRangeSelected: Boolean
     },
 	computed: {
@@ -44,6 +47,19 @@ export default {
         }
 	},
 	methods: {
+        ifInComparitiveRange(date) {
+            const {
+                comparitiveStartDate,
+                comparitiveEndDate
+            } = this
+            return (
+                (this.isValidDate(comparitiveStartDate) && this.isValidDate(comparitiveEndDate))
+                &&
+                (
+                    (date >= comparitiveStartDate && date <= comparitiveEndDate)
+                )
+            )
+        },
         getDateWithDay(day) {
             const year = this.date.getFullYear()
             const month = this.date.getMonth()
@@ -125,6 +141,7 @@ export default {
         },
         isValidDate(date) {
             //dates are reference types so we have to compare the value
+            if (!date) return false
             return +date !== +this.getLeastDate()
         },
         getLeastDate() {
@@ -182,6 +199,11 @@ export default {
         &:hover {
             background: blueviolet;
         }
+    }
+
+    &.comparitive-range {
+        color: #fcfcfc;
+        background: saddlebrown;
     }
 }
 

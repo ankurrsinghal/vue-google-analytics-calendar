@@ -5,6 +5,8 @@
                 :date="getLastMonth(date)"
                 :activeSelectedDayStart= activeSelectedDayStart
                 :activeSelectedDayEnd = activeSelectedDayEnd
+                :comparitiveStartDate = comparitiveStartDate
+                :comparitiveEndDate = comparitiveEndDate
                 :currentMouseOveredDay = currentMouseOveredDay
                 :isRangeSelected = isRangeSelected
                 @onDayClick = onDayClick
@@ -13,6 +15,8 @@
                 :date="date"
                 :activeSelectedDayStart = activeSelectedDayStart
                 :activeSelectedDayEnd = activeSelectedDayEnd
+                :comparitiveStartDate = comparitiveStartDate
+                :comparitiveEndDate = comparitiveEndDate
                 :currentMouseOveredDay = currentMouseOveredDay
                 :isRangeSelected = isRangeSelected
                 @onDayClick="onDayClick"
@@ -21,6 +25,8 @@
                 :date="getNextMonth(date)"
                 :activeSelectedDayStart = activeSelectedDayStart
                 :activeSelectedDayEnd = activeSelectedDayEnd
+                :comparitiveStartDate = comparitiveStartDate
+                :comparitiveEndDate = comparitiveEndDate
                 :currentMouseOveredDay = currentMouseOveredDay
                 :isRangeSelected = isRangeSelected
                 @onDayClick="onDayClick"
@@ -44,10 +50,10 @@
             </p>
             <div>
                 <p>
-                    Start Date: {{ comparitiveStartDate }}
+                    Start Date: {{ printableComparitiveStartDate }}
                 </p>
                 <p>
-                    End Date: {{ comparitiveEndDate }}
+                    End Date: {{ printableComparitiveEndDate }}
                 </p>
             </div>
         </div>
@@ -60,6 +66,8 @@ import CalendarBox from './CalendarBox'
 
 const PREVIOUS_PERIOD = "PREVIOUS_PERIOD"
 const PREVIOUS_YEAR = "PREVIOUS_YEAR"
+
+const getRelativeLastYearDate = date => new Date(date.getFullYear() - 1, date.getMonth(), date.getDate())
 
 export default {
 	data() {
@@ -83,53 +91,27 @@ export default {
             } = this
             return isValidDate(activeSelectedDayStart) && isValidDate(activeSelectedDayEnd)
         },
-        printableStartDate() {
-            const {
-                activeSelectedDayStart,
-                isValidDate
-            } = this
-            return (isValidDate(activeSelectedDayStart) && activeSelectedDayStart.toDateString()) || ''
-        },
-        printableEndDate() {
-            const {
-                activeSelectedDayEnd,
-                isValidDate
-            } = this
-            return (isValidDate(activeSelectedDayEnd) && activeSelectedDayEnd.toDateString()) || ''
-        },
-        printablePreviousYearStartDate() {
+        previousYearStartDate() {
             const {
                 activeSelectedDayStart,
                 isValidDate
             } = this
 
             if (isValidDate(activeSelectedDayStart)) {
-                const year = activeSelectedDayStart.getFullYear()
-                const month = activeSelectedDayStart.getMonth()
-                const day = activeSelectedDayStart.getDate()
-                
-                return new Date(year - 1, month, day).toDateString()
+                return getRelativeLastYearDate(activeSelectedDayStart)
             }
-
-            return ''
         },
-        printablePreviousYearEndDate() {
+        previousYearEndDate() {
             const {
                 activeSelectedDayEnd,
                 isValidDate
             } = this
-            
-            if (isValidDate(activeSelectedDayEnd)) {
-                const year = activeSelectedDayEnd.getFullYear()
-                const month = activeSelectedDayEnd.getMonth()
-                const day = activeSelectedDayEnd.getDate()
-                
-                return new Date(year - 1, month, day).toDateString()
-            }
 
-            return ''
+            if (isValidDate(activeSelectedDayEnd)) {
+                return getRelativeLastYearDate(activeSelectedDayEnd)
+            }
         },
-        printablePreviousPeriodStartDate() {
+        previousPeriodStartDate() {
             const {
                 activeSelectedDayStart,
                 activeSelectedDayEnd,
@@ -144,12 +126,10 @@ export default {
                 const month = activeSelectedDayStart.getMonth()
                 const day = activeSelectedDayStart.getDate()
                 
-                return new Date(year, month, day - 1 - differenceInDays).toDateString()
+                return new Date(year, month, day - 1 - differenceInDays)
             }
-
-            return ''
         },
-        printablePreviousPeriodEndDate() {
+        previousPeriodEndDate() {
             const {
                 activeSelectedDayStart,
                 isValidDate
@@ -160,33 +140,50 @@ export default {
                 const month = activeSelectedDayStart.getMonth()
                 const day = activeSelectedDayStart.getDate()
                 
-                return new Date(year, month, day - 1).toDateString()
+                return new Date(year, month, day - 1)
             }
-
-            return ''
         },
         comparitiveStartDate() {
-            const { comparisonWith, printablePreviousYearStartDate, printablePreviousPeriodStartDate } = this
+            const { comparisonWith, previousYearStartDate, previousPeriodStartDate } = this
             if (comparisonWith === PREVIOUS_YEAR) {
-                return printablePreviousYearStartDate
+                return previousYearStartDate
             } else if (comparisonWith === PREVIOUS_PERIOD) {
-                return printablePreviousPeriodStartDate
-            } else {
-                return ''
+                return previousPeriodStartDate
             }
         },
         comparitiveEndDate() {
-            const { comparisonWith, printablePreviousYearEndDate, printablePreviousPeriodEndDate } = this
+            const { comparisonWith, previousYearEndDate, previousPeriodEndDate } = this
             if (comparisonWith === PREVIOUS_YEAR) {
-                return printablePreviousYearEndDate
+                return previousYearEndDate
             } else if (comparisonWith === PREVIOUS_PERIOD) {
-                return printablePreviousPeriodEndDate
-            } else {
-                return ''
+                return previousPeriodEndDate
             }
+        },
+        printableStartDate() {
+            const {
+                activeSelectedDayStart,
+                isValidDate
+            } = this
+            return (isValidDate(activeSelectedDayStart) && activeSelectedDayStart.toDateString()) || ''
+        },
+        printableEndDate() {
+            const {
+                activeSelectedDayEnd,
+                isValidDate
+            } = this
+            return (isValidDate(activeSelectedDayEnd) && activeSelectedDayEnd.toDateString()) || ''
+        },
+        printableComparitiveStartDate() {
+            const { comparitiveStartDate } = this
+            return comparitiveStartDate ? comparitiveStartDate.toDateString() : ''
+        },
+        printableComparitiveEndDate() {
+            const { comparitiveEndDate } = this
+            return comparitiveEndDate ? comparitiveEndDate.toDateString() : ''
         }
 	},
 	methods: {
+        
         onDayMouseOver(day) {
             if (this.isRangeSelected) return
             this.currentMouseOveredDay = day
