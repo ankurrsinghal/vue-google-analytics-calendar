@@ -3,20 +3,33 @@
         <div class="calendar-month">
             {{ ` ${month} ${year}` }}
         </div>
+        <div class="calendar-days-container calendar-week-days-names">
+            <div
+                class="calender-day-wrapper week-day"
+                v-for="(name, index) in weekDaysNames"
+                :key="index">
+                <div class="calendar-day">{{ name }}</div>
+            </div>
+        </div>
+        <div class="week-divider"></div>
         <div class="calendar-days-container">
             <div
-                class="calender-day"
-                v-for="day in days"
-                :key="day"
-                :class="{
-                    'comparitive-range': ifInComparitiveRange(getDateWithDay(day)),
-                    'selected': ifDaySelected(getDateWithDay(day)),
-                    'in-range': ifInRange(getDateWithDay(day)),
-                    'mouseover': currentMouseOveredDay === getDateWithDay(day)
-                }"
-                @click="$emit('onDayClick', (getDateWithDay(day)))"
-                @mouseover="$emit('onDayMouseOver', (getDateWithDay(day)))">
-                {{ day }}
+                class="calender-day-wrapper"
+                v-for="index in 35"
+                :key="index">
+                <div
+                    v-if="shouldDayBeHere(index)"
+                    class="calender-day"
+                    :class="{
+                        'comparitive-range': ifInComparitiveRange(computeDateFromIndex(index)),
+                        'selected': ifDaySelected(computeDateFromIndex(index)),
+                        'in-range': ifInRange(computeDateFromIndex(index)),
+                        'mouseover': currentMouseOveredDay === computeDateFromIndex(index)
+                    }"
+                    @click="$emit('onDayClick', (computeDateFromIndex(index)))"
+                    @mouseover="$emit('onDayMouseOver', (computeDateFromIndex(index)))">
+                    {{ paddedDayFromIndex(index) }}
+                </div>
             </div>
         </div>
     </div>
@@ -24,6 +37,37 @@
 
 <script>
 import { capitalize } from 'lodash'
+
+const firstDayOfTheMonth = date => {
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    return new Date(year, month, 1).getDay()
+}
+
+const DAYS_MONTH_MAP = {
+    0: 31,
+    2: 31,
+    3: 30,
+    4: 31,
+    5: 30,
+    6: 31,
+    7: 31,
+    8: 30,
+    9: 31,
+    10: 30,
+    11: 31
+}
+
+const howManyDaysInThisMonthsDate = date => {
+    const month = date.getMonth()
+    const year = date.getYear()
+
+    if (month === 1) {
+        return year % 4 === 0 ? 29 : 28
+    } else {
+        return DAYS_MONTH_MAP[month]
+    }
+}
 
 export default {
     props: {
@@ -44,9 +88,43 @@ export default {
 		},
 		year() {
 			return this.date.getFullYear()
-        }
+        },
+        weekDaysNames() {
+            return [
+                'M',
+                'T',
+                'W',
+                'T',
+                'F',
+                'S',
+                'S'
+            ]
+        },
+        firstDayOfTheMonth() {
+            return firstDayOfTheMonth(this.date)   
+        },
+        numberOfDaysInThisMonth() {
+			return howManyDaysInThisMonthsDate(this.date)
+        },
 	},
 	methods: {
+        computeDateFromIndex(index) {
+            return this.getDateWithDay(this.paddedDayFromIndex(index))
+        },
+        paddedDayFromIndex(index) {
+            return index - this.firstDayOfTheMonth + 1
+        },
+        shouldDayBeHere(index) {
+            const {
+                numberOfDaysInThisMonth,
+                firstDayOfTheMonth
+            } = this
+            return (
+                index >= firstDayOfTheMonth
+                &&
+                index <= numberOfDaysInThisMonth
+            )
+        },
         ifInComparitiveRange(date) {
             const {
                 comparitiveStartDate,
@@ -115,30 +193,6 @@ export default {
 			]
 			return monthNames[date.getMonth()]
 		},
-		getDays(date) {
-			const daysMonthMap = {
-				0: 31,
-				2: 31,
-				3: 30,
-				4: 31,
-				5: 30,
-				6: 31,
-				7: 31,
-				8: 30,
-				9: 31,
-				10: 30,
-				11: 31
-			}
-
-			const month = date.getMonth()
-			const year = date.getYear()
-
-			if (month === 1) {
-				return year % 4 === 0 ? 29 : 28
-			} else {
-				return daysMonthMap[month]
-			}
-        },
         isValidDate(date) {
             //dates are reference types so we have to compare the value
             if (!date) return false
@@ -154,8 +208,8 @@ export default {
 <style lang="less">
 
 @numOfColumns: 7;
-@daySize: 30px;
-@daySpacing: 6px;
+@daySize: 25px;
+@daySpacing: 2px;
 @containerPadding: 8px;
 @totalWidth: @daySize*@numOfColumns + @daySpacing*((@numOfColumns)-1) + @containerPadding*2;
 
@@ -168,18 +222,21 @@ export default {
 
 .calendar-days-container {
     display: grid;
-    grid-template-columns: repeat(@numOfColumns, 30px);
+    grid-template-columns: repeat(@numOfColumns, @daySize);
     gap: @daySpacing;
 }
 
-.calender-day {
-	width: @daySize;
+.calender-day-wrapper {
+    width: @daySize;
     height: @daySize;
     font-weight: 500;    
 	background: #fcfcfc;
-    font-size: 12px;
+    font-size: 11px;
     line-height: @daySize;
     text-align: center;
+}
+
+.calender-day {
     cursor: pointer;
     transition: background-color .2s, color .2s;
 
@@ -212,5 +269,13 @@ export default {
     font-size: 13px;
     font-weight: 500;
     margin-bottom: 8px;
+}
+
+.week-day {
+    border-bottom: 1px solid #333333;
+}
+
+.week-divider {
+    margin: 2px 0;
 }
 </style>

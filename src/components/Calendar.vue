@@ -37,6 +37,9 @@
             <div class="calendar-action next">
                 <button @click="incrementMonth">Next</button>
             </div>
+            <div class="macros">
+                
+            </div>
         </div>
         <div class="values">
             <div>
